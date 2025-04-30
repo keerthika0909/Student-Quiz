@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, black, white);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    .quiz-container {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      color: #0077b6;
+      margin-bottom: 10px;
+    }
+
+    .instructions {
+      font-size: 14px;
+      margin-bottom: 20px;
+      color: #444;
+    }
+
+    .question {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .answers {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .answers button {
+      padding: 10px;
+      background-color: #f0f0f0;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+    }
+
+    .answers button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .answers button.correct {
+      background-color: #38b000;
+      color: white;
+      border-color: #2d6a4f;
+    }
+
+    .answers button.incorrect {
+      background-color: #d00000;
+      color: white;
+      border-color: #9e0000;
+    }
+
+    .next-btn, .restart-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .next-btn:hover, .restart-btn:hover {
+      background-color: #023e8a;
+    }
+
+    .score-area {
+      display: none;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+
+    @media (max-width: 480px) {
+      .quiz-container {
+        padding: 20px;
+      }
+
+      .question {
+        font-size: 18px;
+      }
+
+      .answers button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>Web Development</h1>
+    <p class="instructions">Choose the correct answer. Click "Next" to proceed.</p>
+    
+    <div class="question" id="question">Loading question...</div>
+    
+    <div class="answers" id="answers"></div>
+    
+    <button class="next-btn" id="nextBtn" disabled>Next</button>
+
+    <div class="score-area" id="scoreArea">
+      <p id="finalScore"></p>
+      <button class="restart-btn" onclick="restartQuiz()">Restart Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "Which language is used for styling web pages?",
+        answers: ["HTML", "jQuery", "CSS", "XML"],
+        correct: "CSS"
+      },
+      {
+        question: "Which tag is used to create a hyperlink in HTML?",
+        answers: ["<link>", "<a>", "<href>", "<url>"],
+        correct: "<a>"
+      },
+      {
+        question: "What does DOM stand for?",
+        answers: ["Document Object Model", "Data Object Management", "Display Output Module", "None"],
+        correct: "Document Object Model"
+      },
+      {
+        question: "Which symbol is used for comments in JavaScript?",
+        answers: ["//", "/* */", "<!-- -->", "#"],
+        correct: "//"
+      },
+      {
+        question: "Which is a JavaScript framework?",
+        answers: ["Laravel", "React", "Django", "Flask"],
+        correct: "React"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById('question');
+    const answersEl = document.getElementById('answers');
+    const nextBtn = document.getElementById('nextBtn');
+    const scoreArea = document.getElementById('scoreArea');
+    const finalScore = document.getElementById('finalScore');
+
+    function loadQuestion() {
+      resetState();
+      const current = quizData[currentQuestion];
+      questionEl.textContent = `Q${currentQuestion + 1}: ${current.question}`;
+      
+      current.answers.forEach(answer => {
+        const btn = document.createElement('button');
+        btn.textContent = answer;
+        btn.addEventListener('click', () => selectAnswer(btn, current.correct));
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function resetState() {
+      nextBtn.disabled = true;
+      answersEl.innerHTML = '';
+    }
+
+    function selectAnswer(selectedBtn, correctAnswer) {
+      const buttons = answersEl.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+        } else if (btn === selectedBtn) {
+          btn.classList.add('incorrect');
+        }
+      });
+
+      if (selectedBtn.textContent === correctAnswer) {
+        score++;
+      }
+
+      nextBtn.disabled = false;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    });
+
+    function showScore() {
+      questionEl.style.display = 'none';
+      answersEl.style.display = 'none';
+      nextBtn.style.display = 'none';
+      scoreArea.style.display = 'block';
+
+      const percent = ((score / quizData.length) * 100).toFixed(2);
+      finalScore.textContent = `You scored ${score} out of ${quizData.length} (${percent}%)`;
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      questionEl.style.display = 'block';
+      answersEl.style.display = 'flex';
+      nextBtn.style.display = 'inline-block';
+      scoreArea.style.display = 'none';
+      loadQuestion();
+    }
+
+    // Initial load
+    loadQuestion();
+  </script>
+</body>
+</html>
